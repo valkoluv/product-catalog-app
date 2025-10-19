@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Каталог Продуктів</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .product-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .product-table th, .product-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .pagination a, .pagination span { margin: 0 5px; text-decoration: none; padding: 5px 10px; border: 1px solid #ccc; }
+        .pagination .active { background-color: #007bff; color: white; border-color: #007bff; }
+        .filter-form { margin-bottom: 20px; padding: 10px; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<h1>Каталог Продуктів</h1>
+
+<div class="filter-form">
+    <h2>Фільтрування та Сортування</h2>
+    <form th:action="@{/products}" method="get">
+
+        <input type="hidden" name="size" th:value="${currentSize}">
+        <input type="hidden" name="page" th:value="${currentPage}">
+
+        <label for="searchName">Пошук за назвою:</label>
+        <input type="text" id="searchName" name="searchName" th:value="${currentSearchName} ?: ''">
+
+        <label for="categoryId">Категорія:</label>
+        <select id="categoryId" name="categoryId">
+            <option value="" th:selected="${currentCategoryId == null}">-- Усі категорії --</option>
+            <option th:each="cat : ${categories}"
+                    th:value="${cat.id}"
+                    th:text="${cat.name}"
+                    th:selected="${cat.id == currentCategoryId}">Категорія</option>
+        </select>
+
+        <label for="minPrice">Ціна від:</label>
+        <input type="number" step="0.01" id="minPrice" name="minPrice" th:value="${currentMinPrice} ?: ''">
+
+        <label for="maxPrice">Ціна до:</label>
+        <input type="number" step="0.01" id="maxPrice" name="maxPrice" th:value="${currentMaxPrice} ?: ''">
+
+        <label for="sortBy">Сортувати за:</label>
+        <select id="sortBy" name="sortBy">
+            <option value="name" th:selected="${currentSortBy == 'name'}">Назва продукту</option>
+            <option value="price" th:selected="${currentSortBy == 'price'}">Ціна</option>
+            <option value="category.name" th:selected="${currentSortBy == 'category.name'}">Назва категорії</option>
+        </select>
+
+        <button type="submit">Застосувати</button>
+        <a th:href="@{/products}">Скинути фільтри</a>
+    </form>
+</div>
+
+<table class="product-table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Назва</th>
+        <th>Ціна</th>
+        <th>Фото</th>
+        <th>Категорія</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="product : ${productPage.content}">
+        <td th:text="${product.id}">1</td>
+        <td th:text="${product.name}">Ноутбук</td>
+        <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}">1200.00</td>
+        <td>
+            <span th:text="${product.photo}">photo.jpg</span>
+        </td>
+        <td th:text="${product.category.name}">Електроніка</td>
+    </tr>
+    </tbody>
+</table>
+
+<div th:if="${productPage.totalPages > 0}" class="pagination">
+        <span th:each="i : ${#numbers.sequence(0, productPage.totalPages - 1)}">
+            <a th:if="${i != currentPage}"
+               th:href="@{/products(page=${i}, size=${productPage.size}, sortBy=${currentSortBy}, categoryId=${currentCategoryId}, minPrice=${currentMinPrice}, maxPrice=${currentMaxPrice}, searchName=${currentSearchName})}"
+               th:text="${i + 1}">1</a>
+            <span th:if="${i == currentPage}" class="active" th:text="${i + 1}">1</span>
+        </span>
+</div>
+
+</body>
+</html>
